@@ -1,4 +1,5 @@
 import { Email } from "../models/email.model.js";
+import { User } from "../models/user.model.js";
 
 export const createEmail = async (req, res) => {
     try {
@@ -37,14 +38,21 @@ export const deleteEmail = async (req,res) => {
     }
 }
 
-export const getAllEmailById = async (req,res)=>{
-    try {
-        const userId = req.id;
-        
-        const emails = await Email.find({userId});
 
-        return res.status(200).json({emails});
-    } catch (error) {
-        console.log(error);
-    }
-}
+export const getAllEmailById = async (req, res) => {
+  try {
+    const userId = req.id;
+    
+    // Get logged-in user's email
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Fetch emails where 'to' matches user's email
+    const emails = await Email.find({ to: user.email });
+
+    return res.status(200).json({ emails });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
